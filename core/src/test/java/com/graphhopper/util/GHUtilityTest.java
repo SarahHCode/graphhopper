@@ -18,9 +18,18 @@
 package com.graphhopper.util;
 
 import com.graphhopper.coll.GHIntLongHashMap;
+import com.graphhopper.storage.Graph;
+import com.graphhopper.storage.NodeAccess;
+
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import java.util.List;
 
 /**
  * @author Peter Karich
@@ -64,4 +73,31 @@ public class GHUtilityTest {
 //        assertEquals(1, map2.get(2));
 //        assertEquals(-1, map2.get(3));
     }
+
+    @Test
+    public void testGetProblems() {
+        Graph g = mock(Graph.class);
+        when(g.getNodes()).thenReturn(1);
+        NodeAccess na = mock(NodeAccess.class);
+        when(g.getNodeAccess()).thenReturn(na);
+        when(na.getLat(0)).thenReturn(91.0);
+        when(na.getLon(0)).thenReturn(181.0);
+        EdgeExplorer explorer = mock(EdgeExplorer.class);
+        when(g.createEdgeExplorer()).thenReturn(explorer);
+        EdgeIterator iter = mock(EdgeIterator.class);
+        when(explorer.setBaseNode(0)).thenReturn(iter);
+        when(iter.next()).thenReturn(false);
+
+        List<String> problems = GHUtility.getProblems(g);
+
+        assertEquals(true, problems.contains("latitude is not within its bounds 91.0"));
+        //assertEquals(true, problems.contains("longitude is not within its bounds 181.0"));
+        //verify(iter, never()).getAdjNode();
+
+    }   
 }
+
+//TODO Test GHUtility getProblems()
+
+
+//TODO Test Router GHResponse
