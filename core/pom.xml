@@ -176,10 +176,10 @@
                     <failOnUnableToExtractRepoInfo>false</failOnUnableToExtractRepoInfo>
                 </configuration>
             </plugin>
-            <!-- <plugin>
+            <plugin>
                 <groupId>org.pitest</groupId>
                 <artifactId>pitest-maven</artifactId>
-                <version>1.16.1</version>
+                <version>1.21.1</version>
                 <dependencies>
                     <dependency>
                         <groupId>org.pitest</groupId>
@@ -188,6 +188,7 @@
                     </dependency>
                 </dependencies>
                 <configuration>
+                    <argLine></argLine>
                     <targetClasses>
                         <param>com.graphhopper.util.*</param>
                     </targetClasses>
@@ -196,8 +197,9 @@
                     </targetTests>
                     <threads>4</threads>
                     <timestampedReports>false</timestampedReports>
+                    <useClasspathJar>false</useClasspathJar>
                 </configuration>
-            </plugin> -->
+            </plugin>
         </plugins>
 
         <!-- make version available at runtime via version file -->
