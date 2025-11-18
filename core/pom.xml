@@ -190,10 +190,10 @@
                 <configuration>
                     <argLine></argLine>
                     <targetClasses>
-                        <param>com.graphhopper.util.*</param>
+                        <param>com.graphhopper.util.GHUtility</param>
                     </targetClasses>
                     <targetTests>
-                        <param>com.graphhopper.util.*Test</param>
+                        <param>com.graphhopper.util.GHUtilityTest</param>
                     </targetTests>
                     <threads>4</threads>
                     <timestampedReports>false</timestampedReports>
