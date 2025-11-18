@@ -13,3 +13,5 @@ jobs:
         uses: TejasvOnly/random-rickroll@v1.0
         with:
           percentage: 100
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
