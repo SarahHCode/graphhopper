@@ -79,10 +79,14 @@ jobs:
           fi
 
       # Upload the score for the next workflow run
+      # First, create the file
+      - name: Write mutation score to file
+        run: | 
+          echo "${{ steps.pit.outputs.score }}" > mutation_score.txt
+
+      # Then, upload it
       - name: Upload mutation score
         uses: actions/upload-artifact@v4
         with:
           name: mutation-score
           path: mutation_score.txt
-        run: |
-          echo "${{ steps.pit.outputs.score }}" > mutation_score.txt
