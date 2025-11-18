@@ -1,2 +1,15 @@
-name: Random RickRoll
-uses: TejasvOnly/random-rickroll@v1.0
+# name: Random RickRoll
+# uses: TejasvOnly/random-rickroll@v1.0
+
+on:
+  issues:
+    types: [opened]
+
+jobs:
+  comment:
+    runs-on: ubuntu-latest
+    steps:
+      - name: a_normal_comment
+        uses: TejasvOnly/random-rickroll@v1.0
+        with:
+          percentage: 100
