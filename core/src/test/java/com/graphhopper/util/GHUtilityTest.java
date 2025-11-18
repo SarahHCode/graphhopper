@@ -18,12 +18,16 @@
 package com.graphhopper.util;
 
 import com.graphhopper.coll.GHIntLongHashMap;
+import com.graphhopper.routing.Router;
+import com.graphhopper.storage.BaseGraph;
 import com.graphhopper.storage.Graph;
 import com.graphhopper.storage.NodeAccess;
 
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -93,8 +97,25 @@ public class GHUtilityTest {
         assertEquals(true, problems.contains("latitude is not within its bounds 91.0"));
         //assertEquals(true, problems.contains("longitude is not within its bounds 181.0"));
         //verify(iter, never()).getAdjNode();
-
     }   
+
+    @Test
+    public void testGetCommonNode() {
+        BaseGraph baseGraph = mock(BaseGraph.class);
+        int edge1 = 5;
+        int edge2 = 10;
+        EdgeIterator e1 = mock(EdgeIterator.class);
+        EdgeIterator e2 = mock(EdgeIterator.class);
+        when(baseGraph.getEdgeIteratorState(edge1, Integer.MIN_VALUE)).thenReturn(e1);
+        when(baseGraph.getEdgeIteratorState(edge2, Integer.MIN_VALUE)).thenReturn(e2);
+        when(e1.getBaseNode()).thenReturn(1);
+        when(e1.getAdjNode()).thenReturn(1);
+
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, 
+        () -> GHUtility.getCommonNode(baseGraph, edge1, edge2));
+    
+        assertEquals("edge1: 5 is a loop at node 1", exception.getMessage());
+    }
 }
 
 //TODO Test GHUtility getProblems()
