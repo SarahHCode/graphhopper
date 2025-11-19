@@ -31,7 +31,14 @@ jobs:
       - name: Extract mutation score from report
         id: extract
         run: |
-          REPORT=$(ls target/pit-reports/*/mutations.xml | head -n 1)
+          REPORT=$(ls target/pit-reports/*/mutations.xml 2>/dev/null | head -n 1)
+          if [ -z "$REPORT" ]; then
+            echo "Error: No mutation report found in target/pit-reports/"
+            echo "Available files:"
+            find target -name "mutations.xml" 2>/dev/null || echo "No mutations.xml found anywhere in target/"
+            exit 1
+          fi
+          
           SCORE=$(xmllint --xpath "string(/mutations/@mutationCoverage)" "$REPORT")
           echo "score=$SCORE" >> $GITHUB_OUTPUT
           echo "Mutation score current: $SCORE"
