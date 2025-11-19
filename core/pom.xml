@@ -188,7 +188,7 @@
                     </dependency>
                 </dependencies>
                 <configuration>
-                    <!-- <argLine></argLine> -->
+                    <argLine>--enable-preview --enable-native-access=ALL-UNNAMED</argLine>
                     <targetClasses>
                         <param>com.graphhopper.util.GHUtility</param>
                     </targetClasses>
