@@ -1,0 +1,80 @@
+name: Mutation Tests
+
+on:
+  push:
+    branches: [main]
+  # workflow_dispatch:   # optionnel, pour déclencher manuellement
+
+jobs:
+  mutation:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        java-version: [24]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          java-version: ${{ matrix.java-version }}
+          distribution: temurin
+
+      # Cache Maven artifacts
+      - name: Cache Maven repository
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+
+      # Run Pitest mutation coverage
+      - name: Run mutation tests
+        run: mvn org.pitest:pitest-maven:1.22.0:mutationCoverage
+        env:
+          JAVA_HOME: ${{ runner.java.home }}
+          MAVEN_OPTS: "-Xmx1024m --enable-preview --enable-native-access=ALL-UNNAMED"
+
+      # Extract mutation score
+      - name: Extract mutation score
+        id: pit
+        run: |
+          SCORE=$(grep -oP '(?<=mutationCoverage=")\d+' target/pit-reports/*/mutations.xml | head -1)
+          echo "score=$SCORE" >> $GITHUB_OUTPUT
+          echo "Mutation score for this commit: $SCORE"
+
+      # Download previous score artifact
+      - name: Download previous mutation score
+        uses: actions/download-artifact@v4
+        with:
+          name: mutation-score
+          path: previous
+        continue-on-error: true
+
+      # Compare scores
+      - name: Compare scores
+        run: |
+          NEW=${{ steps.pit.outputs.score }}
+          if [ -f previous/mutation_score.txt ]; then
+            OLD=$(cat previous/mutation_score.txt)
+            echo "Previous score: $OLD"
+            echo "New score: $NEW"
+            if [ "$NEW" -lt "$OLD" ]; then
+              echo "❌ Mutation score decreased ($NEW < $OLD)"
+              exit 1
+            else
+              echo "✅ Mutation score did not decrease"
+            fi
+          else
+            echo "No previous score found — skipping comparison"
+          fi
+
+      # Upload current score for next workflow run
+      - name: Upload mutation score
+        run: echo "${{ steps.pit.outputs.score }}" > mutation_score.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: mutation-score
+          path: mutation_score.txt
