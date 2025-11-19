@@ -23,6 +23,20 @@ jobs:
 
       - name: Run PIT mutation testing
         run: mvn -B -pl core org.pitest:pitest-maven:mutationCoverage -DoutputFormats=XML,HTML
+      
+      - name: Debug - List all files in target
+        run: |
+          echo "=== Structure complète de target/pit-reports ==="
+          find target -type d -name "pit-reports" -exec ls -laR {} \; 2>/dev/null || echo "Répertoire pit-reports non trouvé"
+          echo ""
+          echo "=== Tous les fichiers XML dans target ==="
+          find target -name "*.xml" 2>/dev/null || echo "Aucun XML trouvé"
+          echo ""
+          echo "=== Structure de core/target ==="
+          ls -la core/target/ 2>/dev/null || echo "core/target n'existe pas"
+          echo ""
+          echo "=== Chercher pit-reports partout ==="
+          find . -type d -name "pit-reports" 2>/dev/null || echo "Aucun répertoire pit-reports"
 
       - name: Run PIT mutation testing (on core module)
         working-directory: core
@@ -31,7 +45,7 @@ jobs:
       - name: Extract mutation score from report
         id: extract
         run: |
-          REPORT=$(ls target/pit-reports/*/mutations.xml 2>/dev/null | head -n 1)
+          REPORT=$(ls core/target/pit-reports/*/mutations.xml 2>/dev/null | head -n 1)
           if [ -z "$REPORT" ]; then
             echo "Error: No mutation report found in target/pit-reports/"
             echo "Available files:"
