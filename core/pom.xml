@@ -200,6 +200,10 @@
                     <timestampedReports>false</timestampedReports>
                     <useClasspathJar>false</useClasspathJar>
                     <verbose>true</verbose>
+                    <outputFormats>
+                        <param>XML</param>
+                        <param>HTML</param>
+                    </outputFormats>
                 </configuration>
             </plugin>
         </plugins>

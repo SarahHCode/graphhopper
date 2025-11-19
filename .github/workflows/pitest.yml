@@ -15,6 +15,9 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
+      - name: Install xmllint
+        run: sudo apt-get update && sudo apt-get install -y libxml2-utils
+
       - name: Build all modules first (required)
         run: mvn -q -DskipTests install
 
@@ -25,7 +28,7 @@ jobs:
       - name: Extract mutation score from report
         id: extract
         run: |
-          REPORT=$(ls core/target/pit-reports/*/mutations.xml | head -n 1)
+          REPORT=$(ls target/pit-reports/mutations.xml | head -n 1)
           SCORE=$(xmllint --xpath "string(/mutations/@mutationCoverage)" "$REPORT")
           echo "score=$SCORE" >> $GITHUB_OUTPUT
           echo "Mutation score current: $SCORE"
