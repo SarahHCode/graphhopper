@@ -21,8 +21,12 @@ jobs:
       - name: Build all modules first
         run: mvn -q -DskipTests install
 
-      - name: Run PIT mutation testing
-        run: mvn -B -pl core org.pitest:pitest-maven:mutationCoverage -DoutputFormats=XML,HTML
+      - name: Run mutation tests and capture score
+        run: |
+          mvn -B -pl core org.pitest:pitest-maven:mutationCoverage -DoutputFormats=XML,HTML 2>&1 | tee pit-output.log
+          SCORE=$(grep -oP "Generated \d+ mutations Killed \d+ \(\K\d+(?=%\))" pit-output.log || echo "0")
+          echo "score=$SCORE" >> $GITHUB_OUTPUT
+          echo "Mutation score: $SCORE%"
       
       - name: Debug - List all files in target
         run: |
@@ -38,24 +42,20 @@ jobs:
           echo "=== Chercher pit-reports partout ==="
           find . -type d -name "pit-reports" 2>/dev/null || echo "Aucun répertoire pit-reports"
 
-      - name: Run PIT mutation testing (on core module)
-        working-directory: core
-        run: mvn -q org.pitest:pitest-maven:mutationCoverage
-
-      - name: Extract mutation score from report
-        id: extract
-        run: |
-          REPORT=$(ls core/target/pit-reports/*/mutations.xml 2>/dev/null | head -n 1)
-          if [ -z "$REPORT" ]; then
-            echo "Error: No mutation report found in target/pit-reports/"
-            echo "Available files:"
-            find target -name "mutations.xml" 2>/dev/null || echo "No mutations.xml found anywhere in target/"
-            exit 1
-          fi
+      # - name: Extract mutation score from report
+        # id: extract
+        # run: |
+          # REPORT=$(ls core/target/pit-reports/*/mutations.xml 2>/dev/null | head -n 1)
+          # if [ -z "$REPORT" ]; then
+          #   echo "Error: No mutation report found in target/pit-reports/"
+          #   echo "Available files:"
+          #   find target -name "mutations.xml" 2>/dev/null || echo "No mutations.xml found anywhere in target/"
+          #   exit 1
+          # fi
           
-          SCORE=$(xmllint --xpath "string(/mutations/@mutationCoverage)" "$REPORT")
-          echo "score=$SCORE" >> $GITHUB_OUTPUT
-          echo "Mutation score current: $SCORE"
+          # SCORE=$(xmllint --xpath "string(/mutations/@mutationCoverage)" "$REPORT")
+          # echo "score=$SCORE" >> $GITHUB_OUTPUT
+          # echo "Mutation score current: $SCORE"
 
       - name: Download previous score (if exists)
         uses: actions/download-artifact@v4
