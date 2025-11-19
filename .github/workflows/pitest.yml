@@ -15,78 +15,55 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Install xmllint
-        run: sudo apt-get update && sudo apt-get install -y libxml2-utils
-
       - name: Build all modules first
         run: mvn -q -DskipTests install
 
       - name: Run mutation tests and capture score
+        id: extract
         run: |
           mvn -B -pl core org.pitest:pitest-maven:mutationCoverage -DoutputFormats=XML,HTML 2>&1 | tee pit-output.log
           SCORE=$(grep -oP "Generated \d+ mutations Killed \d+ \(\K\d+(?=%\))" pit-output.log || echo "0")
           echo "score=$SCORE" >> $GITHUB_OUTPUT
           echo "Mutation score: $SCORE%"
       
-      - name: Debug - List all files in target
+      - name: Read previous score
+        id: previous
         run: |
-          echo "=== Structure complète de target/pit-reports ==="
-          find target -type d -name "pit-reports" -exec ls -laR {} \; 2>/dev/null || echo "Répertoire pit-reports non trouvé"
-          echo ""
-          echo "=== Tous les fichiers XML dans target ==="
-          find target -name "*.xml" 2>/dev/null || echo "Aucun XML trouvé"
-          echo ""
-          echo "=== Structure de core/target ==="
-          ls -la core/target/ 2>/dev/null || echo "core/target n'existe pas"
-          echo ""
-          echo "=== Chercher pit-reports partout ==="
-          find . -type d -name "pit-reports" 2>/dev/null || echo "Aucun répertoire pit-reports"
+          if [ -f .github/mutation-score.txt ]; then
+            PREVIOUS=$(cat .github/mutation-score.txt)
+            echo "previous=$PREVIOUS" >> $GITHUB_OUTPUT
+            echo "Previous score: $PREVIOUS%"
+          else
+            echo "previous=0" >> $GITHUB_OUTPUT
+            echo "No previous score found"
+          fi
 
-      # - name: Extract mutation score from report
-        # id: extract
-        # run: |
-          # REPORT=$(ls core/target/pit-reports/*/mutations.xml 2>/dev/null | head -n 1)
-          # if [ -z "$REPORT" ]; then
-          #   echo "Error: No mutation report found in target/pit-reports/"
-          #   echo "Available files:"
-          #   find target -name "mutations.xml" 2>/dev/null || echo "No mutations.xml found anywhere in target/"
-          #   exit 1
-          # fi
-          
-          # SCORE=$(xmllint --xpath "string(/mutations/@mutationCoverage)" "$REPORT")
-          # echo "score=$SCORE" >> $GITHUB_OUTPUT
-          # echo "Mutation score current: $SCORE"
-
-      - name: Download previous score (if exists)
-        uses: actions/download-artifact@v4
-        with:
-          name: mutation-score
-        continue-on-error: true
-
-      - name: Compare with previous score
-        id: compare
+      - name: Compare scores
         run: |
           CURRENT=${{ steps.extract.outputs.score }}
-          if [ -f previous_score.txt ]; then
-            PREVIOUS=$(cat previous_score.txt)
-            echo "Previous score: $PREVIOUS"
-          else
-            echo "No previous score found, treating as first run."
-            PREVIOUS=$CURRENT
-          fi
+          PREVIOUS=${{ steps.previous.outputs.previous }}
+          
+          echo "Previous score: $PREVIOUS%"
+          echo "Current score: $CURRENT%"
 
-          echo "Current score: $CURRENT"
-
-          # Fail if score decreased
-          if (( $(echo "$CURRENT < $PREVIOUS" | bc -l) )); then
-            echo "::error::Mutation score decreased from $PREVIOUS to $CURRENT"
+          if [ "$CURRENT" -lt "$PREVIOUS" ]; then
+            echo "::error::❌ Mutation score decreased from $PREVIOUS% to $CURRENT%"
             exit 1
+          elif [ "$CURRENT" -gt "$PREVIOUS" ]; then
+            echo "::notice::✅ Score improved from $PREVIOUS% to $CURRENT%"
+          else
+            echo "::notice::✅ Score maintained at $CURRENT%"
           fi
 
-          echo "$CURRENT" > current_score.txt
-
-      - name: Upload score for next runs
-        uses: actions/upload-artifact@v4
-        with:
-          name: mutation-score
-          path: current_score.txt
+      - name: Save new score
+        run: |
+          mkdir -p .github
+          echo "${{ steps.extract.outputs.score }}" > .github/mutation-score.txt
+          
+      - name: Commit score update
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add .github/mutation-score.txt
+          git diff --staged --quiet || git commit -m "📊 Update mutation score to ${{ steps.extract.outputs.score }}%"
+          git push
