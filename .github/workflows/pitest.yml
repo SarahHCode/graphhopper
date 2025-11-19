@@ -1,0 +1,62 @@
+name: Mutation Testing
+on: push
+
+jobs:
+  pitest:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Run PIT mutation testing (on core module)
+        working-directory: core
+        run: mvn -q org.pitest:pitest-maven:mutationCoverage
+
+      - name: Extract mutation score from report
+        id: extract
+        run: |
+          REPORT=$(ls core/target/pit-reports/*/mutations.xml | head -n 1)
+          SCORE=$(xmllint --xpath "string(/mutations/@mutationCoverage)" "$REPORT")
+          echo "score=$SCORE" >> $GITHUB_OUTPUT
+          echo "Mutation score current: $SCORE"
+
+      - name: Download previous score (if exists)
+        uses: actions/download-artifact@v4
+        with:
+          name: mutation-score
+        continue-on-error: true
+
+      - name: Compare with previous score
+        id: compare
+        run: |
+          CURRENT=${{ steps.extract.outputs.score }}
+          if [ -f previous_score.txt ]; then
+            PREVIOUS=$(cat previous_score.txt)
+            echo "Previous score: $PREVIOUS"
+          else
+            echo "No previous score found, treating as first run."
+            PREVIOUS=$CURRENT
+          fi
+
+          echo "Current score: $CURRENT"
+
+          # Fail if score decreased
+          if (( $(echo "$CURRENT < $PREVIOUS" | bc -l) )); then
+            echo "::error::Mutation score decreased from $PREVIOUS to $CURRENT"
+            exit 1
+          fi
+
+          echo "$CURRENT" > current_score.txt
+
+      - name: Upload score for next runs
+        uses: actions/upload-artifact@v4
+        with:
+          name: mutation-score
+          path: current_score.txt
