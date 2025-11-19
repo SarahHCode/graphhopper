@@ -28,7 +28,7 @@ jobs:
       - name: Extract mutation score from report
         id: extract
         run: |
-          REPORT=$(ls target/pit-reports/mutations.xml | head -n 1)
+          REPORT=$(ls target/pit-reports/*/mutations.xml | head -n 1)
           SCORE=$(xmllint --xpath "string(/mutations/@mutationCoverage)" "$REPORT")
           echo "score=$SCORE" >> $GITHUB_OUTPUT
           echo "Mutation score current: $SCORE"
