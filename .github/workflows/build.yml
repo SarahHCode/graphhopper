@@ -40,53 +40,48 @@ jobs:
 # -----------------------------
 # RUN MUTATION TESTS
 # -----------------------------
-      - name: Run mutation tests
-        run: mvn -B org.pitest:pitest-maven:mutationCoverage
-
-      - name: Extract mutation score
-        id: pit
-        run: |
-          # extract score from PITest XML output
-          SCORE=$(grep -oP '(?<=mutationCoverage=")\d+' target/pit-reports/*/mutations.xml | head -1)
-          echo "score=$SCORE" >> $GITHUB_OUTPUT
-          echo "Mutation score for this commit: $SCORE"
-
-      # Download previous score artifact (if exists)
-      - name: Download previous mutation score
-        uses: actions/download-artifact@v4
-        with:
-          name: mutation-score
-          path: previous
-        continue-on-error: true
-
-      - name: Compare scores
-        run: |
-          NEW=${{ steps.pit.outputs.score }}
-
-          if [ -f previous/mutation_score.txt ]; then
-            OLD=$(cat previous/mutation_score.txt)
-            echo "Previous score: $OLD"
-            echo "New score: $NEW"
-
-            if [ "$NEW" -lt "$OLD" ]; then
-              echo "❌ Mutation score decreased ($NEW < $OLD)"
-              exit 1
-            else
-              echo "✅ Mutation score did not decrease"
-            fi
-          else
-            echo "No previous score found — skipping comparison"
-          fi
-
-      # Upload the score for the next workflow run
-      # First, create the file
-      - name: Write mutation score to file
-        run: | 
-          echo "${{ steps.pit.outputs.score }}" > mutation_score.txt
-
-      # Then, upload it
-      - name: Upload mutation score
-        uses: actions/upload-artifact@v4
-        with:
-          name: mutation-score
-          path: mutation_score.txt
+      # Run mutation tests with Pitest 
+      - name: Run mutation tests 
+        run: mvn -B org.pitest:pitest-maven:1.22.0:mutationCoverage 
+        env: 
+          JAVA_HOME: ${{ runner.java.home }} 
+          MAVEN_OPTS: "-Xmx1024m --enable-preview --enable-native-access=ALL-UNNAMED" 
+        # Extract mutation score 
+        - name: Extract mutation score
+          id: pit 
+          run: 
+            | SCORE=$(grep -oP '(?<=mutationCoverage=")\d+' target/pit-reports/*/mutations.xml | head -1) 
+              echo "score=$SCORE" >> $GITHUB_OUTPUT 
+              echo "Mutation score for this commit: $SCORE" 
+          # Download previous score 
+          - name: Download previous mutation score 
+            uses: actions/download-artifact@v4
+            with: name: mutation-score 
+              path: previous 
+              continue-on-error: true 
+          # Compare scores 
+          - name: Compare scores 
+            run: 
+              | NEW=${{ steps.pit.outputs.score }}
+                if [ -f previous/mutation_score.txt ]; then
+                  OLD=$(cat previous/mutation_score.txt) 
+                  echo "Previous score: $OLD" 
+                  echo "New score: $NEW" 
+                  if [ "$NEW" -lt "$OLD" ]; then 
+                    echo "❌ Mutation score decreased ($NEW < $OLD)" 
+                    exit 1 
+                  else 
+                    echo "✅ Mutation score did not decrease" 
+                  fi 
+                else 
+                  echo "No previous score found — skipping comparison"
+                fi 
+        # Write mutation score to file
+        - name: Write mutation score to file 
+          run: echo "${{ steps.pit.outputs.score }}" > mutation_score.txt 
+        # Upload mutation score artifact 
+        - name: Upload mutation score
+          uses: actions/upload-artifact@v4
+          with: 
+            name: mutation-score 
+            path: mutation_score.txt
