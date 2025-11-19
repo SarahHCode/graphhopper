@@ -22,7 +22,7 @@ jobs:
         run: mvn -q -DskipTests install
 
       - name: Run PIT mutation testing
-        run: mvn -B -pl core org.pitest:pitest-maven:mutationCoverage
+        run: mvn test-compile org.pitest:pitest-maven:mutationCoverage -DoutputFormats=XML,HTML
 
       - name: Run PIT mutation testing (on core module)
         working-directory: core
