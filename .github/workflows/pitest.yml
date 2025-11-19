@@ -15,6 +15,9 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
+      - name: Build all modules first (required)
+        run: mvn -q -DskipTests install
+
       - name: Run PIT mutation testing (on core module)
         working-directory: core
         run: mvn -q org.pitest:pitest-maven:mutationCoverage
