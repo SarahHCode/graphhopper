@@ -48,6 +48,7 @@ jobs:
 
           if [ "$CURRENT" -lt "$PREVIOUS" ]; then
             echo "::error::❌ Mutation score decreased from $PREVIOUS% to $CURRENT%"
+            echo "::warning::📺 Don't give up! Check this tutorial: https://www.youtube.com/watch?v=dQw4w9WgXcQ"
             exit 1
           elif [ "$CURRENT" -gt "$PREVIOUS" ]; then
             echo "::notice::✅ Score improved from $PREVIOUS% to $CURRENT%"
