@@ -18,6 +18,9 @@ jobs:
       - name: Install xmllint
         run: sudo apt-get update && sudo apt-get install -y libxml2-utils
 
+      - name: Build all modules first
+        run: mvn -q -DskipTests install
+
       - name: Run PIT mutation testing
         run: mvn -q -pl core org.pitest:pitest-maven:mutationCoverage
 
