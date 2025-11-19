@@ -1,9 +1,6 @@
 name: Mutation Tests
 
-on:
-  push:
-    branches: [main]
-  # workflow_dispatch:   # optionnel, pour déclencher manuellement
+on: push
 
 jobs:
   mutation:
