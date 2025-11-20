@@ -99,23 +99,23 @@ public class GHUtilityTest {
         //verify(iter, never()).getAdjNode();
     }   
 
-    // @Test
-    // public void testGetCommonNode() {
-    //     BaseGraph baseGraph = mock(BaseGraph.class);
-    //     int edge1 = 5;
-    //     int edge2 = 10;
-    //     EdgeIterator e1 = mock(EdgeIterator.class);
-    //     EdgeIterator e2 = mock(EdgeIterator.class);
-    //     when(baseGraph.getEdgeIteratorState(edge1, Integer.MIN_VALUE)).thenReturn(e1);
-    //     when(baseGraph.getEdgeIteratorState(edge2, Integer.MIN_VALUE)).thenReturn(e2);
-    //     when(e1.getBaseNode()).thenReturn(1);
-    //     when(e1.getAdjNode()).thenReturn(1);
+    @Test
+    public void testGetCommonNode() {
+        BaseGraph baseGraph = mock(BaseGraph.class);
+        int edge1 = 5;
+        int edge2 = 10;
+        EdgeIterator e1 = mock(EdgeIterator.class);
+        EdgeIterator e2 = mock(EdgeIterator.class);
+        when(baseGraph.getEdgeIteratorState(edge1, Integer.MIN_VALUE)).thenReturn(e1);
+        when(baseGraph.getEdgeIteratorState(edge2, Integer.MIN_VALUE)).thenReturn(e2);
+        when(e1.getBaseNode()).thenReturn(1);
+        when(e1.getAdjNode()).thenReturn(1);
 
-    //     IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, 
-    //     () -> GHUtility.getCommonNode(baseGraph, edge1, edge2));
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, 
+        () -> GHUtility.getCommonNode(baseGraph, edge1, edge2));
     
-    //     assertEquals("edge1: 5 is a loop at node 1", exception.getMessage());
-    // }
+        assertEquals("edge1: 5 is a loop at node 1", exception.getMessage());
+    }
 }
 
 //TODO Test GHUtility getProblems()
