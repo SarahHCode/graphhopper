@@ -1,0 +1,4 @@
+# Modification du workflow
+
+# Classe choisi
+La classe GHUtility a été choisie, car elle contient des fonctions qui ne sont pas couvertes comme on peut voir dans jacoco et ces fonctions non couvertes contenant des classes non ‘primitives’ de java ‘propres’ à GraphHopper ont été choisies pour faire des tests. Ces classes non primitives de java pour lesquelles il est moins facile de créer un objet  par exemple à cause de plusieurs dépendances ont été simulées afin de réduire les dépendances sur ces classes afin de pouvoir se concentrer davantage sur tester la logique dans les fonctions testées. Graph, NodeAccess, EdgeExplorer et EdgeIterator dans getProblems ont été mockés et les valeurs de leurs retours de fonctions qui sont utilisés dans les fonctions testées ont aussi été mockés([when().thenReturn]). [Montrer exemples dans code] Même chose pour BaseGraph et EdgeIterator dans getCommonNode. 
