@@ -80,6 +80,7 @@ public class GHUtilityTest {
 
     @Test
     public void testGetProblems() {
+        // Prepare mocks
         Graph g = mock(Graph.class);
         when(g.getNodes()).thenReturn(1);
         NodeAccess na = mock(NodeAccess.class);
@@ -92,15 +93,18 @@ public class GHUtilityTest {
         when(explorer.setBaseNode(0)).thenReturn(iter);
         when(iter.next()).thenReturn(false);
 
+        // Execute test
         List<String> problems = GHUtility.getProblems(g);
 
+        // Verify results
         assertEquals(true, problems.contains("latitude is not within its bounds 91.0"));
-        //assertEquals(true, problems.contains("longitude is not within its bounds 181.0"));
-        //verify(iter, never()).getAdjNode();
+        assertEquals(true, problems.contains("longitude is not within its bounds 181.0"));
+        verify(iter, never()).getAdjNode();
     }   
 
     @Test
     public void testGetCommonNode() {
+        // Prepare mocks
         BaseGraph baseGraph = mock(BaseGraph.class);
         int edge1 = 5;
         int edge2 = 10;
@@ -111,14 +115,11 @@ public class GHUtilityTest {
         when(e1.getBaseNode()).thenReturn(1);
         when(e1.getAdjNode()).thenReturn(1);
 
+        // Execute test and verify exception
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, 
         () -> GHUtility.getCommonNode(baseGraph, edge1, edge2));
     
+        // Verify exception message
         assertEquals("edge1: 5 is a loop at node 1", exception.getMessage());
     }
 }
-
-//TODO Test GHUtility getProblems()
-
-
-//TODO Test Router GHResponse
