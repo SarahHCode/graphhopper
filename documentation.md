@@ -1,6 +1,10 @@
 # Modification du workflow
 
-Nous avons fait un autre fichier ```pitest.yml``` qui test le pitest. Le workflow ```pitest.yml``` éxécute des lines de commande pour éxécuter les test de mutation pitest. L'extraction du mutation score se fait avec un grep.  Ensuite, on compare avec le score précédent s'il existe. Si le score est plus bas que le précédent alors on échoue le test et on est invité de regarder un tutoriel (rickroll). Sinon le test passe et on enregistre le score dans un fichier mutation-score.txt. 
+Nous avons créer un fichier ```pitest.yml``` qui est dédié à l'exécution des test de mutation avec PIT. Le workflow ```pitest.yml``` lance des lines de commande pour exécuter PIT et utilise ensuite ```grep``` pour extraire le score de mutation. Le score obtenu est comparé au précédent s'il existe.
+* Si le score est plus bas que le précédent alors le workflow échoue et on est invité à regarder un tutoriel (rickroll). 
+* Sinon le test passe et on enregistre le nouveau score dans le fichier mutation-score.txt en faisant un commit. 
+
+Exemple de sortie:
 ```
 Run CURRENT=3
 Previous score: 4%
@@ -9,7 +13,7 @@ Error: ❌ Mutation score decreased from 4% to 3%
 Warning: 📺 Don't give up! Check this tutorial: https://www.youtube.com/watch?v=dQw4w9WgXcQ
 Error: Process completed with exit code 1
 ```
-Pour éviter de rouler le build quand le test de mutation est plus bas que le commit précédent nous avons ajouté dans ```build.yml```: 
+Pour éviter de lancer le workflow ```build.yml``` lorsque le score de mutation est plus bas que le commit précédent nous avons ajouté ceci dans ```build.yml```: 
 ```
 on: 
   workflow_run:
@@ -20,7 +24,7 @@ jobs:
   build:
     if: ${{github.event.workflow_run.conclusion == 'success'}}
 ```
-Comme ça le build attend que le workflow pitest est fini et est (successful) avant de rouler le workflow ```build.yml```. 
+Comme ça le workflow ```build.yml``` attend que ```Mutation Testing```(```pitest.yml```) soit fini et ait réussit avant de s'exécuter. 
 
 # Mocks
 La classe GHUtility a été choisie, car elle contient des fonctions qui ne sont pas couvertes par des tests comme on peut voir dans le rapport jacoco du code. Les fonctions non couvertes contenant des classes non ‘primitives’ de java et ‘propres’ à GraphHopper ont été choisies pour faire des tests. 
